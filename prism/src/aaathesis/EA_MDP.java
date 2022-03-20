@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 import parser.ast.ExpressionProp;
 import parser.ast.ModulesFile;
+import prism.ModelGenerator;
 import prism.Prism;
 import prism.PrismDevNullLog;
 import prism.PrismException;
@@ -42,6 +43,7 @@ public class EA_MDP {
 			for (int i = 0; i < 5; i++) {
 				mc.addChromosome(MarkovChain.getRandomChromosome());
 			}
+			
 			System.out.println(mc);
 			sim.createNewPath();
 			sim.initialisePath(null);
@@ -50,11 +52,11 @@ public class EA_MDP {
 				//System.out.println(toBePicked);
 				sim.manualTransition(toBePicked);
 			}
-			System.out.println(sim.getPath());	
-			String check = "Pmax=?[F \"goal1\"]";
-			ExpressionProp e = new ExpressionProp(check);
-			sim.checkPropertyForSimulation(e);
+			System.out.println(sim.getPath());
+			//String exp = "Pmax=?[F<=5 \"goal1\"]";
+			//System.out.println(prism.modelCheck(exp));
 			
+			test();
 			
 			prism.closeDown();
 		} catch (PrismException e) {
@@ -65,4 +67,26 @@ public class EA_MDP {
 
 		
 	}
+	private void test() {
+		Population pop = new Population();
+		MarkovChain mc1, mc2,mc3;
+		mc1 = new MarkovChain();
+		mc2 = new MarkovChain();
+		mc3 = new MarkovChain();
+		for (int i = 0; i < 5; i++) {
+			mc1.addChromosome(MarkovChain.getRandomChromosome());
+			mc2.addChromosome(MarkovChain.getRandomChromosome());
+			mc3.addChromosome(MarkovChain.getRandomChromosome());
+		}
+		mc1.setFitness(0.5f);
+		mc2.setFitness(0.1f);
+		mc3.setFitness(0.2f);
+		pop.addMarkovChain(mc1);
+		pop.addMarkovChain(mc2);
+		pop.addMarkovChain(mc3);
+		Object[] params = {2,3};
+		Population resultPop = Selection.rouletteWheel(pop, "ox","one", params);
+		System.out.println(resultPop);
+	}
+
 }
