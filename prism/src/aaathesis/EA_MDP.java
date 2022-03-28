@@ -1,19 +1,15 @@
 package aaathesis;
 
-import java.beans.Expression;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
 
-import parser.ast.ExpressionProp;
+import explicit.DTMCFromMDPAndMDStrategy;
 import parser.ast.ModulesFile;
-import prism.ModelGenerator;
 import prism.Prism;
 import prism.PrismDevNullLog;
 import prism.PrismException;
 import prism.PrismLog;
 import simulator.SimulatorEngine;
-import strat.Strategy;
 
 public class EA_MDP {
 	public static void main(String [] args) {
@@ -43,17 +39,16 @@ public class EA_MDP {
 			for (int i = 0; i < 5; i++) {
 				mc.addChromosome(MarkovChain.getRandomChromosome());
 			}
-			
 			System.out.println(mc);
 			sim.createNewPath();
 			sim.initialisePath(null);
 			for (Float chromosome : mc) {
-				int toBePicked=UnityDistribution.getTransitionFromChromosomeValue(chromosome, sim.getNumTransitions());
+				int toBePicked=UnityDistribution.getTransitionFromChromosomeValue(chromosome, sim.getNumChoices());
 				//System.out.println(toBePicked);
-				sim.manualTransition(toBePicked);
+				sim.automaticTransitionWithinChoice(toBePicked);
 			}
-			System.out.println(sim.getPath());
-			//String exp = "Pmax=?[F<=5 \"goal1\"]";
+			System.out.println(sim.getPathFull());
+			//String exp = "Pmax=?[F \"goal1\"]";
 			//System.out.println(prism.modelCheck(exp));
 			
 			test();

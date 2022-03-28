@@ -20,7 +20,9 @@ public class Mutation {
 	}
 	
 	public static void allChromosomesMutation(MarkovChain mc) {
-		
+		for (int i = 0; i<mc.getSize();i++) {
+			mc.setChromosomeAtIndex(i, (mc.getChromosomeAtIndex(i)+getShrinkingFactor())%1f);
+		}
 	}
 	
 	public static void adaptiveMutation(MarkovChain mc) {

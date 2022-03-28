@@ -406,6 +406,29 @@ public class SimulatorEngine extends PrismComponent
 
 		return true;
 	}
+	
+	public boolean automaticTransitionWithinChoice(int choice) throws PrismException {
+		// Check for deadlock; if so, stop and return false
+		if (modelGen.getNumChoices() == 0)
+			return false;
+		double d;
+		int i, j;
+		switch (modelType) {
+			case MDP:
+				// Pick a random choice
+				i = choice;
+				// Pick a random transition from this choice
+				d = rng.randomUnifDouble();
+				j = getTransitionIndexByProbabilitySum(i, d);
+				System.out.println("state " + getCurrentState() + " picking choice " + choice + " ("+getTransitionActionString(j)+") transition number " + j );
+				// Execute
+				executeTransition(i, j, -1);
+				break;
+			default:
+				throw new PrismNotSupportedException(modelType + " not supported");
+		}
+		return true;
+	}
 
 	/**
 	 * Get a reference to a transition according to a total probability (or rate) sum, x.
