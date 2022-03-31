@@ -2,8 +2,9 @@ package aaathesis;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 
-import explicit.DTMCFromMDPAndMDStrategy;
+import parser.State;
 import parser.ast.ModulesFile;
 import prism.Prism;
 import prism.PrismDevNullLog;
@@ -51,9 +52,9 @@ public class EA_MDP {
 			//String exp = "Pmax=?[F \"goal1\"]";
 			//System.out.println(prism.modelCheck(exp));
 			
-			test();
-			
-			prism.closeDown();
+			//test();
+			test2();
+			//prism.closeDown();
 		} catch (PrismException e) {
 			e.printStackTrace();
 		} catch (FileNotFoundException e) {
@@ -82,6 +83,68 @@ public class EA_MDP {
 		Object[] params = {2,3};
 		Population resultPop = Selection.rouletteWheel(pop, "ox","one", params);
 		System.out.println(resultPop);
+	}
+	
+	private void test2() {
+		try {
+			MarkovChain mc = new MarkovChain();
+			// Create a log for PRISM output (hidden or stdout)
+			PrismLog mainLog = new PrismDevNullLog();
+			//PrismLog mainLog = new PrismFileLog("stdout");
+
+			// Initialise PRISM engine 
+			Prism prism = new Prism(mainLog);
+			
+			prism.initialise();
+			
+			// Parse and load a PRISM model (an MDP) from a file
+			ModulesFile modulesFile = prism.parseModelFile(new File("examples/robot.prism"));
+			prism.loadPRISMModel(modulesFile);
+			
+			// Load the model into the simulator
+			prism.loadModelIntoSimulator();
+			SimulatorEngine sim = prism.getSimulator();
+			for (int i = 0; i < 5; i++) {
+				mc.addChromosome(MarkovChain.getRandomChromosome());
+			}
+			System.out.println(mc);
+			sim.createNewPath();
+			sim.initialisePath(null);
+			CustomDTMC dtmc = new CustomDTMC();
+			String actionName;
+			for (Float chromosome : mc) {
+				ArrayList<State> destinations = new ArrayList<State>(); 
+				ArrayList<Double> probabilities = new ArrayList<Double>(); 
+				int toBePicked=UnityDistribution.getTransitionFromChromosomeValue(chromosome, sim.getNumChoices());
+				for(int i = 0; i<sim.getNumTransitions(toBePicked);i++) {
+					destinations.add(sim.computeTransitionTarget(toBePicked, i));
+					probabilities.add(sim.getTransitionProbability(toBePicked, i));
+				}
+				int x = sim.getNumTransitions(toBePicked);
+				dtmc.addData(sim.getCurrentState(), destinations, sim.getNumTransitions(toBePicked), probabilities);
+				//System.out.println(toBePicked);
+				actionName = sim.automaticTransitionWithinChoice(toBePicked);
+				dtmc.addChoice(actionName);
+				System.out.println("test " +dtmc.getNumTransitions(0));
+				dtmc.goNext();
+			
+			}
+			System.out.println(sim.getPathFull());
+			Prism exportPrism = new Prism(mainLog);
+			exportPrism.initialise();
+			exportPrism.loadModelGenerator(dtmc);
+			//ModulesFile
+			//exportPrism.loadPRISMModel(mf);
+			exportPrism.exportPRISMModel(new File("test.prism"));
+			//exportPrism.exportTransToFile(true, Prism.EXPORT_DOT_STATES, new File("transTest.dot"));
+			exportPrism.closeDown();
+			//String exp = "Pmax=?[F \"goal1\"]";
+			//System.out.println(prism.modelCheck(exp));
+		} catch (PrismException e) {
+			e.printStackTrace();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
 	}
 
 }

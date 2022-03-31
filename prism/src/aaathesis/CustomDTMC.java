@@ -1,5 +1,6 @@
 package aaathesis;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -13,18 +14,25 @@ import prism.PrismException;
 public class CustomDTMC implements ModelGenerator {
 	// Current state being explored
 	private State exploreState, initialState;
-	private List<State> states;
-	private List<String> actions;
-	private List<Integer> transitionN;
+	private ArrayList<State> states;
+	private ArrayList<String> actions;
+	private ArrayList<Integer> transitionN;
+	private ArrayList<String> labelList;
 	private String action,labels;
 	private int transitions,tracking;
-	private List<List<Double>> probabilities;
-	private List<List<State>> destinations;
+	private ArrayList<ArrayList<Double>> probabilities;
+	private ArrayList<ArrayList<State>> destinations;
 	
-	public CustomDTMC(State initialState, String action, int transitions, List<Double> probabilities) {
+	public CustomDTMC(State initialState, String action, int transitions, ArrayList<Double> probabilities) {
 		this.initialState = initialState;
 		this.action= action;
 		this.transitions = transitions;
+		this.states = new ArrayList<State>();
+		this.actions = new ArrayList<String>();
+		this.transitionN = new ArrayList<Integer>();
+		this.probabilities = new ArrayList<ArrayList<Double>>();
+		this.destinations = new ArrayList<ArrayList<State>>();
+		this.labelList = new ArrayList<String>();
 		states.add(initialState);
 		actions.add(action);
 		transitionN.add(transitions);
@@ -33,15 +41,47 @@ public class CustomDTMC implements ModelGenerator {
 	}
 	
 	public CustomDTMC() {
+		this.states = new ArrayList<State>();
+		this.actions = new ArrayList<String>();
+		this.transitionN = new ArrayList<Integer>();
+		this.probabilities = new ArrayList<ArrayList<Double>>();
+		this.destinations = new ArrayList<ArrayList<State>>();
+		this.labelList = new ArrayList<String>();
 		tracking = 0;
 	}
 	
-	public void addData(State state, List<State> destinations, String action, int transitions, List<Double> probabilities) {
+	public CustomDTMC(State initialState) {
+		this.states = new ArrayList<State>();
+		this.actions = new ArrayList<String>();
+		this.transitionN = new ArrayList<Integer>();
+		this.probabilities = new ArrayList<ArrayList<Double>>();
+		this.destinations = new ArrayList<ArrayList<State>>();
+		this.initialState=initialState;
+		this.labelList = new ArrayList<String>();
+		tracking = 0;
+	}
+	
+	public void addData(State state, ArrayList<State> destinations, String action, int transitions, ArrayList<Double> probabilities) {
 		this.states.add(state);
 		this.destinations.add(destinations);
 		this.actions.add(action);
 		this.transitionN.add(transitions);
 		this.probabilities.add(probabilities);
+	}
+	
+	public void addData(State state, ArrayList<State> destinations, int transitions, ArrayList<Double> probabilities) {
+		this.states.add(state);
+		this.destinations.add(destinations);
+		this.transitionN.add(transitions);
+		this.probabilities.add(probabilities);
+	}
+	
+	public void addChoice(String choice) {
+		actions.add(choice);
+	}
+	
+	public void goNext() {
+		tracking++;
 	}
 
 	@Override
@@ -51,12 +91,12 @@ public class CustomDTMC implements ModelGenerator {
 
 	@Override
 	public List<String> getVarNames() {
-		return null;
+		return labelList;
 	}
 
 	@Override
 	public List<Type> getVarTypes() {
-		return null;
+		return Arrays.asList(TypeInt.getInstance());
 	}
 
 	@Override
