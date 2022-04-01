@@ -56,6 +56,10 @@ public class DTMCFromMDPAndMDStrategy extends DTMCExplicit
 		this.mdp = mdp;
 		this.numStates = mdp.getNumStates();
 		this.strat = strat;
+		Map <String, BitSet> mdpLabels = mdp.getLabelToStatesMap();
+		for ( var entry : mdpLabels.entrySet()) {
+			super.addLabel(entry.getKey(), entry.getValue());
+		}
 	}
 
 	@Override

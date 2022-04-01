@@ -4,13 +4,22 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
+import explicit.DTMC;
+import explicit.DTMCFromMDPAndMDStrategy;
+import explicit.DTMCModelChecker;
+import explicit.MDP;
 import parser.State;
 import parser.ast.ModulesFile;
+import parser.ast.PropertiesFile;
 import prism.Prism;
 import prism.PrismDevNullLog;
 import prism.PrismException;
 import prism.PrismLog;
+import prism.Result;
 import simulator.SimulatorEngine;
+import strat.MDStrategy;
+import strat.MDStrategyArray;
+import java.io.ByteArrayInputStream;
 
 public class EA_MDP {
 	public static void main(String [] args) {
@@ -20,7 +29,7 @@ public class EA_MDP {
 	private void run() {
 		
 		try {
-			MarkovChain mc = new MarkovChain();
+			//MarkovChain mc = new MarkovChain();
 			// Create a log for PRISM output (hidden or stdout)
 			PrismLog mainLog = new PrismDevNullLog();
 			//PrismLog mainLog = new PrismFileLog("stdout");
@@ -29,12 +38,35 @@ public class EA_MDP {
 			Prism prism = new Prism(mainLog);
 			
 			prism.initialise();
-			
+			prism.setEngine(Prism.EXPLICIT);
 			// Parse and load a PRISM model (an MDP) from a file
 			ModulesFile modulesFile = prism.parseModelFile(new File("examples/robot.prism"));
 			prism.loadPRISMModel(modulesFile);
+			prism.buildModel();
+			MDP mdp = (MDP) prism.getBuiltModelExplicit();
+			System.out.println(mdp);
+			int[] stratArray = new int[mdp.getStatesList().size()];
+			
+			for(int i = 0; i < mdp.getStatesList().size(); i++) {
+				float chromosome = MarkovChain.getRandomChromosome();
+				stratArray[i] = UnityDistribution.getTransitionFromChromosomeValue(chromosome, mdp.getNumChoices(i));
+				System.out.print(stratArray[i]+" ");
+			}
+			System.out.println();
+			MDStrategy strat = new MDStrategyArray(mdp, stratArray);
+			DTMC dtmc = new DTMCFromMDPAndMDStrategy(mdp, strat);
+			
+			DTMCModelChecker mc = new DTMCModelChecker(prism);
+			
+			
+			PropertiesFile pf = prism.parsePropertiesString("P=?[F \"goal1\"]");
+			Result r = mc.check(dtmc, pf.getProperty(0));
+			System.out.println(r.getResult());
+			
+			
 			
 			// Load the model into the simulator
+			/*
 			prism.loadModelIntoSimulator();
 			SimulatorEngine sim = prism.getSimulator();
 			for (int i = 0; i < 5; i++) {
@@ -48,13 +80,16 @@ public class EA_MDP {
 				//System.out.println(toBePicked);
 				sim.automaticTransitionWithinChoice(toBePicked);
 			}
+
 			System.out.println(sim.getPathFull());
+			*/
 			//String exp = "Pmax=?[F \"goal1\"]";
 			//System.out.println(prism.modelCheck(exp));
 			
 			//test();
-			test2();
-			//prism.closeDown();
+			//test2();
+			//test3();
+			prism.closeDown();
 		} catch (PrismException e) {
 			e.printStackTrace();
 		} catch (FileNotFoundException e) {
@@ -101,6 +136,7 @@ public class EA_MDP {
 			ModulesFile modulesFile = prism.parseModelFile(new File("examples/robot.prism"));
 			prism.loadPRISMModel(modulesFile);
 			
+			
 			// Load the model into the simulator
 			prism.loadModelIntoSimulator();
 			SimulatorEngine sim = prism.getSimulator();
@@ -125,9 +161,7 @@ public class EA_MDP {
 				//System.out.println(toBePicked);
 				actionName = sim.automaticTransitionWithinChoice(toBePicked);
 				dtmc.addChoice(actionName);
-				System.out.println("test " +dtmc.getNumTransitions(0));
 				dtmc.goNext();
-			
 			}
 			System.out.println(sim.getPathFull());
 			Prism exportPrism = new Prism(mainLog);
@@ -145,6 +179,11 @@ public class EA_MDP {
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public void test3() {
+
+		//DTMCFromMDPAndMDStrategy dtmc = new DTMCFromMDPAndMDStrategy(, null);
 	}
 
 }

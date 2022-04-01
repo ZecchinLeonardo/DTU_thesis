@@ -34,7 +34,7 @@ public class MarkovChain implements Iterable<Float> {
 		return r.nextFloat();
 	}
 	
-	public Float getChromosomeAtIndex(int index) {
+	public float getChromosomeAtIndex(int index) {
 		return this.chromosomes.get(index);
 	}
 	
