@@ -15,7 +15,7 @@ public class Mutation {
 	public static void oneChromosomeMutation(MarkovChain mc) {
 		Random r = new Random();
 		int index = r.nextInt(mc.getSize());
-		System.out.println("mutating chromosome at index "+ index);
+		//System.out.println("mutating chromosome at index "+ index);
 		mc.setChromosomeAtIndex(index, (mc.getChromosomeAtIndex(index)+getShrinkingFactor())%1f);
 	}
 	

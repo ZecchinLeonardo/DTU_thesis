@@ -27,7 +27,8 @@ public class EA_MDP {
 	}
 
 	private void run() {
-		
+		final int POP_SIZE = 10;
+		final int GEN_SIZE = 100;
 		try {
 			//MarkovChain mc = new MarkovChain();
 			// Create a log for PRISM output (hidden or stdout)
@@ -45,50 +46,82 @@ public class EA_MDP {
 			prism.buildModel();
 			MDP mdp = (MDP) prism.getBuiltModelExplicit();
 			System.out.println(mdp);
-			int[] stratArray = new int[mdp.getStatesList().size()];
-			
-			for(int i = 0; i < mdp.getStatesList().size(); i++) {
-				float chromosome = MarkovChain.getRandomChromosome();
-				stratArray[i] = UnityDistribution.getTransitionFromChromosomeValue(chromosome, mdp.getNumChoices(i));
-				System.out.print(stratArray[i]+" ");
+			int[] nChoices = new int[mdp.getStatesList().size()];
+			Population p = new Population();
+			for (int popCount = 0; popCount<POP_SIZE; popCount++) {
+				MarkovChain mc = new MarkovChain();
+				for(int i = 0; i < mdp.getStatesList().size(); i++) {
+					float chromosome = MarkovChain.getRandomChromosome();
+					mc.addChromosome(chromosome);
+					//save num choices for each state
+					nChoices[i] = mdp.getNumChoices(i);
+					//System.out.print(nChoices[i] +" ");
+				}
+				//System.out.println();
+				p.addMarkovChain(mc);
+				
 			}
-			System.out.println();
+			
+			//model checking on each dtmc in population
+			for(int i = 0; i<p.getPopulationSize(); i++) {
+				int[] stratArray = UnityDistribution.getStrategyFromMarkovChain(p.getMarkovChainAtIndex(i), nChoices);
+				MDStrategy strat = new MDStrategyArray(mdp, stratArray);
+				DTMC dtmc = new DTMCFromMDPAndMDStrategy(mdp, strat);
+				
+				DTMCModelChecker mc = new DTMCModelChecker(prism);
+				
+				PropertiesFile pf = prism.parsePropertiesString("P=?[F \"goal1\"]");
+				Result r = mc.check(dtmc, pf.getProperty(0));
+				p.getMarkovChainAtIndex(i).setFitness((float)((double) r.getResult()));
+				/*
+				System.out.println("DTMC at index " + i + " has fitness of " + r.getResult()+" with choice array: ");
+				for(int j=0;j<dtmc.getStatesList().size();j++) {
+					System.out.print(stratArray[j]+ " ");
+				}
+				System.out.println();
+				*/
+			}
+			System.out.println("INITIAL POPULATION");
+			for(int i = 0; i<p.getPopulationSize();i++) {
+				System.out.println(p.getMarkovChainAtIndex(i));
+			}
+			System.out.println("//////////////////////////////////");
+			
+			Object[] params = {1,3};
+			for(int gen = 0; gen<GEN_SIZE; gen++) {
+				p = Selection.rouletteWheel(p, "ox", "one", params);
+				
+				for(int i = 0; i<p.getPopulationSize(); i++) {
+					int[] stratArray = UnityDistribution.getStrategyFromMarkovChain(p.getMarkovChainAtIndex(i), nChoices);
+					MDStrategy strat = new MDStrategyArray(mdp, stratArray);
+					DTMC dtmc = new DTMCFromMDPAndMDStrategy(mdp, strat);
+					
+					DTMCModelChecker mc = new DTMCModelChecker(prism);
+					
+					PropertiesFile pf = prism.parsePropertiesString("P=?[F \"goal1\"]");
+					Result r = mc.check(dtmc, pf.getProperty(0));
+					p.getMarkovChainAtIndex(i).setFitness((float)((double) r.getResult()));
+					
+				}
+			}
+			
+			for(int i = 0; i<p.getPopulationSize();i++) {
+				System.out.println("DTMC at index " + i + " has fitness of " + p.getMarkovChainAtIndex(i).getfitness()+" with choice array: ");
+				System.out.println(p.getMarkovChainAtIndex(i));
+			}
+			
+			//MODEL CHECKING ON DTMC
+			/*
 			MDStrategy strat = new MDStrategyArray(mdp, stratArray);
 			DTMC dtmc = new DTMCFromMDPAndMDStrategy(mdp, strat);
 			
 			DTMCModelChecker mc = new DTMCModelChecker(prism);
 			
-			
 			PropertiesFile pf = prism.parsePropertiesString("P=?[F \"goal1\"]");
 			Result r = mc.check(dtmc, pf.getProperty(0));
 			System.out.println(r.getResult());
-			
-			
-			
-			// Load the model into the simulator
-			/*
-			prism.loadModelIntoSimulator();
-			SimulatorEngine sim = prism.getSimulator();
-			for (int i = 0; i < 5; i++) {
-				mc.addChromosome(MarkovChain.getRandomChromosome());
-			}
-			System.out.println(mc);
-			sim.createNewPath();
-			sim.initialisePath(null);
-			for (Float chromosome : mc) {
-				int toBePicked=UnityDistribution.getTransitionFromChromosomeValue(chromosome, sim.getNumChoices());
-				//System.out.println(toBePicked);
-				sim.automaticTransitionWithinChoice(toBePicked);
-			}
-
-			System.out.println(sim.getPathFull());
 			*/
-			//String exp = "Pmax=?[F \"goal1\"]";
-			//System.out.println(prism.modelCheck(exp));
-			
-			//test();
-			//test2();
-			//test3();
+
 			prism.closeDown();
 		} catch (PrismException e) {
 			e.printStackTrace();
@@ -97,93 +130,6 @@ public class EA_MDP {
 		}
 
 		
-	}
-	private void test() {
-		Population pop = new Population();
-		MarkovChain mc1, mc2,mc3;
-		mc1 = new MarkovChain();
-		mc2 = new MarkovChain();
-		mc3 = new MarkovChain();
-		for (int i = 0; i < 5; i++) {
-			mc1.addChromosome(MarkovChain.getRandomChromosome());
-			mc2.addChromosome(MarkovChain.getRandomChromosome());
-			mc3.addChromosome(MarkovChain.getRandomChromosome());
-		}
-		mc1.setFitness(0.5f);
-		mc2.setFitness(0.1f);
-		mc3.setFitness(0.2f);
-		pop.addMarkovChain(mc1);
-		pop.addMarkovChain(mc2);
-		pop.addMarkovChain(mc3);
-		Object[] params = {2,3};
-		Population resultPop = Selection.rouletteWheel(pop, "ox","one", params);
-		System.out.println(resultPop);
-	}
-	
-	private void test2() {
-		try {
-			MarkovChain mc = new MarkovChain();
-			// Create a log for PRISM output (hidden or stdout)
-			PrismLog mainLog = new PrismDevNullLog();
-			//PrismLog mainLog = new PrismFileLog("stdout");
-
-			// Initialise PRISM engine 
-			Prism prism = new Prism(mainLog);
-			
-			prism.initialise();
-			
-			// Parse and load a PRISM model (an MDP) from a file
-			ModulesFile modulesFile = prism.parseModelFile(new File("examples/robot.prism"));
-			prism.loadPRISMModel(modulesFile);
-			
-			
-			// Load the model into the simulator
-			prism.loadModelIntoSimulator();
-			SimulatorEngine sim = prism.getSimulator();
-			for (int i = 0; i < 5; i++) {
-				mc.addChromosome(MarkovChain.getRandomChromosome());
-			}
-			System.out.println(mc);
-			sim.createNewPath();
-			sim.initialisePath(null);
-			CustomDTMC dtmc = new CustomDTMC();
-			String actionName;
-			for (Float chromosome : mc) {
-				ArrayList<State> destinations = new ArrayList<State>(); 
-				ArrayList<Double> probabilities = new ArrayList<Double>(); 
-				int toBePicked=UnityDistribution.getTransitionFromChromosomeValue(chromosome, sim.getNumChoices());
-				for(int i = 0; i<sim.getNumTransitions(toBePicked);i++) {
-					destinations.add(sim.computeTransitionTarget(toBePicked, i));
-					probabilities.add(sim.getTransitionProbability(toBePicked, i));
-				}
-				int x = sim.getNumTransitions(toBePicked);
-				dtmc.addData(sim.getCurrentState(), destinations, sim.getNumTransitions(toBePicked), probabilities);
-				//System.out.println(toBePicked);
-				actionName = sim.automaticTransitionWithinChoice(toBePicked);
-				dtmc.addChoice(actionName);
-				dtmc.goNext();
-			}
-			System.out.println(sim.getPathFull());
-			Prism exportPrism = new Prism(mainLog);
-			exportPrism.initialise();
-			exportPrism.loadModelGenerator(dtmc);
-			//ModulesFile
-			//exportPrism.loadPRISMModel(mf);
-			exportPrism.exportPRISMModel(new File("test.prism"));
-			//exportPrism.exportTransToFile(true, Prism.EXPORT_DOT_STATES, new File("transTest.dot"));
-			exportPrism.closeDown();
-			//String exp = "Pmax=?[F \"goal1\"]";
-			//System.out.println(prism.modelCheck(exp));
-		} catch (PrismException e) {
-			e.printStackTrace();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public void test3() {
-
-		//DTMCFromMDPAndMDStrategy dtmc = new DTMCFromMDPAndMDStrategy(, null);
 	}
 
 }

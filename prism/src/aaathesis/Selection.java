@@ -32,12 +32,14 @@ public class Selection {
 			for(i =0 ; i<popSize && random>0; i++) {
 				random -= pop.getMarkovChainAtIndex(i).getfitness();
 			}
-			parent1 = pop.getMarkovChainAtIndex(i-1);
+			int parentIndex = i==0 ? 0 : i-1;
+			parent1 = pop.getMarkovChainAtIndex(parentIndex);
 			random = r.nextFloat() * totalFitness;
 			for(i =0 ; i<popSize && random>0; i++) {
 				random -= pop.getMarkovChainAtIndex(i).getfitness();
 			}
-			parent2 = pop.getMarkovChainAtIndex(i-1);
+			parentIndex = i==0 ? 0 : i-1;
+			parent2 = pop.getMarkovChainAtIndex(parentIndex);
 			toBeAdded = doCrossover(crossoverType, parent1, parent2, params);
 			doMutate(mutationType, toBeAdded);
 			newPop.addMarkovChain(toBeAdded);
@@ -74,6 +76,10 @@ public class Selection {
 		switch (mutationType.toLowerCase()) {
 		case "one": {
 			Mutation.oneChromosomeMutation(toMutate);
+			break;
+		}
+		case "all": {
+			Mutation.allChromosomesMutation(toMutate);
 			break;
 		}
 		default:

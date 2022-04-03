@@ -19,6 +19,15 @@ public class UnityDistribution {
 		}
 		return count;
 	}
-
+	
+	public static int[] getStrategyFromMarkovChain(MarkovChain mc, int[] nChoices) {
+		int[] strat = new int[mc.getSize()];
+		int i = 0;
+		for(Float chromosome : mc) {
+			strat[i] = getTransitionFromChromosomeValue(chromosome, nChoices[i]);
+			i++;
+		}
+		return strat;
+	}
 	
 }
