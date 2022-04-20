@@ -21,9 +21,7 @@ public class Crossover {
 				al1.add(parent1.getChromosomeAtIndex(i));
 			}
 			for(Float chromosome : parent2) {
-				if(!al1.contains(chromosome)) {
-					al2.add(chromosome);
-				}
+				al2.add(chromosome);
 			}
 			int currentSize = 0, j=0,k=0;
 			while (currentSize<parent1.getSize()) {
@@ -43,11 +41,27 @@ public class Crossover {
 		}
 	}
 	
-	public static MarkovChain pmx(MarkovChain parent1, MarkovChain parent2, Object[] params) {
-		return null;
-	}
-	
 	public static MarkovChain cx(MarkovChain parent1, MarkovChain parent2, Object[] params) {
-		return null;
+		try {
+			int index1 =((int) params[0]);
+			int index2 =((int) params[1]);
+			if (index2 < index1) {
+				throw new Exception();
+			}
+			MarkovChain crossover = new MarkovChain();
+			int currentSize = 0;
+			while (currentSize<parent1.getSize()) {
+				if(currentSize>=index1 && currentSize<=index2) {
+					crossover.addChromosome(parent1.getChromosomeAtIndex(currentSize));
+				} else {
+					crossover.addChromosome(parent2.getChromosomeAtIndex(currentSize));
+				}
+				currentSize++;
+			}
+			return crossover;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 }

@@ -3,6 +3,10 @@ package aaathesis;
 import java.util.Random;
 
 public class Mutation {
+	
+	private static final float HQ_MUTATION_RATE = 0.1f;
+	private static final float LQ_MUTATION_RATE = 0.75f;
+	
 	private Mutation() {
 		
 	}
@@ -25,7 +29,19 @@ public class Mutation {
 		}
 	}
 	
-	public static void adaptiveMutation(MarkovChain mc) {
-		
+	public static void allGenesMutationWithProbability(MarkovChain mc, float probability) {
+		Random r = new Random();
+		for (int i = 0; i<mc.getSize();i++) {
+			if (r.nextFloat()<probability)
+				mc.setChromosomeAtIndex(i, (mc.getChromosomeAtIndex(i)+getShrinkingFactor())%1f);
+		}
+	}
+	
+	public static void adaptiveMutation(MarkovChain mc, float avgFitness) {
+		if(mc.getfitness()>=avgFitness) { 
+			allGenesMutationWithProbability(mc, HQ_MUTATION_RATE);
+		} else {
+			allGenesMutationWithProbability(mc, LQ_MUTATION_RATE);
+		}
 	}
 }

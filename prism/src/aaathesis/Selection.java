@@ -9,9 +9,31 @@ public class Selection {
 	private Selection() {
 		
 	}
-	public static void elitism(Population pop) {
-		
-		
+	public static Population elitism(Population pop, String crossoverType, String mutationType, Object[] params) {
+		float avgFitness = pop.getAvgFitness();
+		Random r = new Random();
+		MarkovChain parent1,parent2, toBeAdded;
+		Population newPop = new Population();
+		Population elites = new Population();
+		for(int i = 0; i<pop.getPopulationSize();i++) {
+			if (pop.getMarkovChainAtIndex(i).getfitness()>=avgFitness) {
+				newPop.addMarkovChain(pop.getMarkovChainAtIndex(i));
+				elites.addMarkovChain(pop.getMarkovChainAtIndex(i));
+			}
+		}
+		while (newPop.getPopulationSize() < pop.getPopulationSize()) {
+			parent1 = elites.getMarkovChainAtIndex(r.nextInt(elites.getPopulationSize()));
+			parent2 = elites.getMarkovChainAtIndex(r.nextInt(elites.getPopulationSize()));
+			toBeAdded = doCrossover(crossoverType, parent1, parent2, params);
+			try {
+				if (params[2] != null) {
+					doMutate(mutationType, toBeAdded, (Float)params[2]);
+				}
+			} catch(IndexOutOfBoundsException oobEx) {
+			}
+			newPop.addMarkovChain(toBeAdded);
+		}
+		return newPop;
 	}
 	
 	public static Population rouletteWheel(Population pop, String crossoverType, String mutationType, Object[] params) {
@@ -40,8 +62,15 @@ public class Selection {
 			}
 			parentIndex = i==0 ? 0 : i-1;
 			parent2 = pop.getMarkovChainAtIndex(parentIndex);
+			System.out.println("Roulette " + parent1 + " " + parent2);
 			toBeAdded = doCrossover(crossoverType, parent1, parent2, params);
-			doMutate(mutationType, toBeAdded);
+			try {
+				if (params[2] != null) {
+					doMutate(mutationType, toBeAdded, (Float)params[2]);
+				}
+			} catch(IndexOutOfBoundsException oobEx) {
+			}
+			
 			newPop.addMarkovChain(toBeAdded);
 		}
 		return newPop;
@@ -58,10 +87,6 @@ public class Selection {
 			mc = Crossover.ox(parent1,parent2, params);
 			break;
 		}
-		case "pmx": {
-			mc =Crossover.pmx(parent1,parent2,params);
-			break;
-		}
 		case "cx": {
 			mc = Crossover.cx(parent1,parent2,params);
 			break;
@@ -72,7 +97,7 @@ public class Selection {
 		return mc;
 	}
 	
-	private static void doMutate(String mutationType, MarkovChain toMutate)  {
+	private static void doMutate(String mutationType, MarkovChain toMutate, float avgFitness)  {
 		switch (mutationType.toLowerCase()) {
 		case "one": {
 			Mutation.oneChromosomeMutation(toMutate);
@@ -80,6 +105,10 @@ public class Selection {
 		}
 		case "all": {
 			Mutation.allChromosomesMutation(toMutate);
+			break;
+		}
+		case "adaptive": {
+			Mutation.adaptiveMutation(toMutate, avgFitness);
 			break;
 		}
 		default:

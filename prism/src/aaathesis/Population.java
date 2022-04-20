@@ -29,6 +29,27 @@ public class Population {
 		return this.pop.size();
 	}
 	
+	public Object[] getMaxFitness() {
+		float max = 0f;
+		int index = -1;
+		for (int i = 0; i<pop.size(); i++) {
+			if(pop.get(i).getfitness()>max) {
+				max = pop.get(i).getfitness();
+				index = i;
+			}
+		}
+		Object[] output = {index, max};
+		return output;
+	}
+	
+	public float getAvgFitness() {
+		float avg = 0;
+		for (MarkovChain mc : pop) {
+			avg += mc.getfitness();
+		}
+		return (avg/pop.size());
+	}
+	
 	public String toString() {
 		String tbr = "";
 		for (MarkovChain mc : pop) {
