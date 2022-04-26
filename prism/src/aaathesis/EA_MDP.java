@@ -43,7 +43,7 @@ public class EA_MDP {
 			prism.initialise();
 			prism.setEngine(Prism.EXPLICIT);
 			// Parse and load a PRISM model (an MDP) from a file
-			ModulesFile modulesFile = prism.parseModelFile(new File("examples/robot.prism"));
+			ModulesFile modulesFile = prism.parseModelFile(new File("examples/mdp_s50_c7_t5.prism"));
 			prism.loadPRISMModel(modulesFile);
 			prism.buildModel();
 			MDP mdp = (MDP) prism.getBuiltModelExplicit();
@@ -97,14 +97,16 @@ public class EA_MDP {
 			params[0] = 1;
 			params[1] = 3;
 			int gen = 0, z = 0;
-			for(gen = 0; gen<GEN_SIZE; gen++) {
+			boolean end = false;
+			for(gen = 0; gen<GEN_SIZE && end == false; gen++) {
 				avgFitness /= POP_SIZE;
 				params[2] = avgFitness;
 				System.out.println("avg fitness " + avgFitness);
 				fitnesses.add(avgFitness);
 				//EA TYPE
 				//p = Selection.rouletteWheel(p, "cx", "adaptive", params);
-				p = Selection.elitism(p, "cx", "adaptive", params);
+				//p = Selection.elitism(p, "cx", "adaptive", params);
+				p = Selection.doSelection("elitism", "cx", "adaptive", p, params);
 				avgFitness = 0;
 				for(z = 0; z<p.getPopulationSize(); z++) {
 					int[] stratArray = UnityDistribution.getStrategyFromMarkovChain(p.getMarkovChainAtIndex(z), nChoices);
@@ -117,7 +119,7 @@ public class EA_MDP {
 					Result r = mc.check(dtmc, pf.getProperty(0));
 					p.getMarkovChainAtIndex(z).setFitness((float)((double) r.getResult()));
 					avgFitness+= p.getMarkovChainAtIndex(z).getfitness();
-					if(p.getMarkovChainAtIndex(z).getfitness() == 1f) break;
+					if(p.getMarkovChainAtIndex(z).getfitness() == 1f) end = true;
 				}
 			}
 			
@@ -136,21 +138,12 @@ public class EA_MDP {
 			//final fitness
 			fitnesses.add(p.getAvgFitness());
 			
+			//OUTPUT FILE WRITING
+			/*
 			for(Float f : fitnesses) { 
 				fw.println(f);
 			}
 			fw.close();
-			
-			//MODEL CHECKING ON DTMC
-			/*
-			MDStrategy strat = new MDStrategyArray(mdp, stratArray);
-			DTMC dtmc = new DTMCFromMDPAndMDStrategy(mdp, strat);
-			
-			DTMCModelChecker mc = new DTMCModelChecker(prism);
-			
-			PropertiesFile pf = prism.parsePropertiesString("P=?[F \"goal1\"]");
-			Result r = mc.check(dtmc, pf.getProperty(0));
-			System.out.println(r.getResult());
 			*/
 
 			prism.closeDown();

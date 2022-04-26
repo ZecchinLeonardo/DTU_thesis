@@ -80,6 +80,23 @@ public class Selection {
 		
 	}
 	
+	public static Population doSelection(String selectionType, String crossoverType, String mutationType, Population pop, Object[] params) {
+		Population p = null;
+		switch (selectionType) {
+		case "roulette": {
+			p = rouletteWheel(pop, crossoverType, mutationType, params);
+			break;
+		}
+		case "elitism": {
+			p = elitism(pop, crossoverType, mutationType, params);
+			break;
+		}
+		default:
+			throw new IllegalArgumentException("Unexpected value: " + selectionType);
+		}
+		return p;
+	}
+	
 	private static MarkovChain doCrossover(String crossoverType, MarkovChain parent1, MarkovChain parent2, Object[] params) {
 		MarkovChain mc = new MarkovChain();
 		switch (crossoverType.toLowerCase()) {
