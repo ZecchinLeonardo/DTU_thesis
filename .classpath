@@ -12,7 +12,7 @@
 	<classpathentry kind="lib" path="prism/lib/jhoafparser.jar"/>
 	<classpathentry kind="lib" path="prism/lib/colt.jar"/>
 	<classpathentry kind="lib" path="prism/lib/pepa.zip"/>
-	<classpathentry kind="lib" path="prism/lib/lpsolve55j.jar"/>
+	<classpathentry kind="lib" path="C:/Users/leona/Documents/GitHub/DTU_thesis/prism/lib/lpsolve-5.5.2.0.jar"/>
 	<classpathentry kind="lib" path="prism/lib/jas.jar"/>
 	<classpathentry kind="lib" path="prism/lib/log4j.jar"/>
 	<classpathentry kind="lib" path="prism/lib/nailgun-server.jar"/>

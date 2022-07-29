@@ -1,0 +1,23 @@
+mdp
+
+const N=14;
+formula MAX = (pow(2,N)-1);
+formula MIN = ((-pow(2,N))+1);
+
+module test
+
+x : [MIN..MAX] init MIN;
+i : [0..N+1] init 0;
+goal : bool init false;
+
+[] i<N -> (x'=min(MAX,x+pow(2,i))) & (i'=i+1); // put a 0 in the i-th bit
+[] i<N -> (x'=min(MAX,x+2*pow(2,i))) & (i'=i+1); // put a 1 in the i-th bit
+
+[] i=N -> max(0,x/MAX): (goal'=true) & (i'=i+1)
+        + 1-max(0,x/MAX): (goal'=false) & (i'=i+1);
+
+[] i=N+1 -> true;
+
+endmodule
+
+label "goal1" = goal ;

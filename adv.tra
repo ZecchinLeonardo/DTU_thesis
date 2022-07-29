@@ -1,0 +1,10 @@
+10 9
+0 0 1 0.75 east
+0 0 2 0.25 east
+2 0 3 0.5 east
+2 0 4 0.5 east
+4 0 5 0.25 east
+4 0 6 0.75 east
+6 0 7 1 north
+7 0 8 1 north
+8 0 9 1 north
